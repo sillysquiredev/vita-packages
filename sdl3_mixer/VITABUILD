@@ -1,0 +1,20 @@
+pkgname=sdl3_mixer
+pkgver=3.1.0
+pkgrel=1
+url='https://github.com/libsdl-org/SDL_mixer'
+license=('Zlib')
+source=("https://github.com/libsdl-org/SDL_mixer/archive/3045b35335113e5e5ba258858cb403d8803bfbeb.zip")
+sha256sums=('e984fdd4fc0e0bf3c59f457f470a0be3b1b5d31fd3fd61bfc5a11c9d95e36ae0')
+
+build() {
+  cd "SDL_mixer-3045b35335113e5e5ba258858cb403d8803bfbeb"
+  mkdir build && cd build
+  cmake .. -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_BUILD_TYPE=Release -DSDL_TEST_LIBRARY=OFF
+  make -j$(nproc)
+}
+
+package () {
+  cd "SDL_mixer-3045b35335113e5e5ba258858cb403d8803bfbeb"
+  cd build
+  make DESTDIR=$pkgdir install
+}
