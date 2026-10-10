@@ -1,0 +1,38 @@
+pkgname=kubridge
+pkgver=0.0.0.r19.g417ddde
+pkgrel=1
+url="https://github.com/bythos14/kubridge"
+source=("git+https://github.com/bythos14/kubridge.git#commit=417ddde9a744eba98d769382c1c1372b8e119139"
+        "vita-headers-886.diff")
+sha256sums=('SKIP'
+            '6214bb444a460f3a7b236f689d354a9515cab2597ccd2bd8df92d9d447949517')
+depends=('taihen')
+
+# Downstream while it is upstreamed: vita-headers PR #886 named the field at
+# offset 0xC of SceKernelAllocMemBlockKernelOpt vbase, which is what kubridge
+# writes there, and started declaring SceKernelObject, which kubridge also
+# declared. Nothing here dereferences that type, only points at it.
+#
+# The SDK being built against decides whether that patch belongs: a release
+# that predates the PR still calls the field field_C, and applying it there
+# would fail. Asking the header is the same question CMake would ask upstream
+# with check_struct_has_member, which is how this leaves once it is merged.
+prepare() {
+  cd $pkgname
+  if grep -Eq '[[:space:]]vbase;' \
+      "$VITASDK/arm-vita-eabi/include/psp2kern/kernel/sysmem.h"; then
+    patch -p1 < ../vita-headers-886.diff
+  fi
+}
+
+build() {
+  cd $pkgname
+  mkdir build && cd build
+  cmake .. -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_INSTALL_PREFIX=$prefix
+  make -j$(nproc)
+}
+
+package () {
+  cd $pkgname/build
+  make DESTDIR=$pkgdir install
+}

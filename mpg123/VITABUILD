@@ -1,0 +1,26 @@
+pkgname=mpg123
+pkgver=1.33.7
+pkgrel=1
+url="https://www.mpg123.de"
+source=("https://www.mpg123.de/download/mpg123-${pkgver}.tar.bz2" "mpg123.patch")
+sha256sums=('31d0e35a4ca567ec9b5ebda6c3062bb4435d6d3eacd6ef0d95cadd7854dc03ee' 'aca128a70e2e665d41d8c146b300207c8842244457bf44bd01a643b4db128a9f')
+noextract=('${pkgname}-${pkgver}.tar.bz2')
+
+prepare() {
+  tar -xf "${pkgname}-${pkgver}.tar.bz2"
+  cd $pkgname-$pkgver
+  patch -p1 < ../mpg123.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  mkdir _build && cd _build
+  cmake ../ports/cmake -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$prefix \
+    -DCMAKE_C_FLAGS='-DDONT_CATCH_SIGNALS' -DACCURATE_ROUNDING=OFF -DHAVE_IPV6=0 -DHAVE_NETWORK=0
+  make -j$(nproc)
+}
+
+package() {
+  cd $pkgname-$pkgver/_build
+  make DESTDIR=$pkgdir install
+}

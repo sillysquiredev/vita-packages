@@ -1,0 +1,28 @@
+pkgname=SceLibcPosix
+pkgver=0.1.0
+pkgrel=1
+url='https://github.com/SonicMastr/SceLibcPosix'
+license=('Zlib')
+source=(
+  "https://github.com/SonicMastr/SceLibcPosix/archive/713f634e49ec6915b3075faeb1b6702759a4b521.zip"
+  "https://github.com/SonicMastr/pthread-embedded/archive/ea80aab63105bf6416da3dd5b9b51ba6043f943b.zip"
+)
+sha256sums=('SKIP' 'SKIP')
+depends=('kubridge')
+
+build() {
+  cd "SceLibcPosix-713f634e49ec6915b3075faeb1b6702759a4b521"
+  cp -r ../pthread-embedded-ea80aab63105bf6416da3dd5b9b51ba6043f943b/* external/pthread-embedded/   
+  mkdir build && cd build
+  cmake .. \
+    -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake \
+    -DCMAKE_INSTALL_PREFIX=$prefix \
+    -DCMAKE_BUILD_TYPE=Release
+  make -j$(nproc)
+}
+
+package () {
+  cd "SceLibcPosix-713f634e49ec6915b3075faeb1b6702759a4b521"
+  cd build
+  make DESTDIR=$pkgdir install
+}
